@@ -614,6 +614,10 @@ function renderAccessList(){
         <div><div style="font-weight:700;font-size:15px;color:#1e293b">${r.nome} ${r.cognome}</div><div style="font-size:13px;color:#64748b">${r.email}</div></div>
       </div>
       <span style="background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:700;border-radius:20px;padding:3px 12px;display:inline-block;margin-bottom:12px">${r.reparto}</span>
+      <div style="margin-bottom:10px">
+        <label style="font-size:12px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">Numero Badge da assegnare</label>
+        <input id="badge-${r.id}" placeholder="Es. 0042" style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:15px;font-family:inherit;box-sizing:border-box">
+      </div>
       <div style="display:flex;gap:10px">
         <button class="btn" onclick="rejectAccess(${r.id})" style="flex:1;background:#fff;border:1.5px solid #fca5a5;border-radius:10px;padding:10px;color:#ef4444;font-size:13px">✕ Rifiuta</button>
         <button class="btn" onclick="approveAccess(${r.id})" style="flex:1;background:#16a34a;border-radius:10px;padding:10px;color:#fff;font-size:13px">✓ Approva</button>
@@ -624,7 +628,9 @@ function renderAccessList(){
 function approveAccess(id){
   const req=accessRequests.find(r=>r.id===id);
   if(!req)return;
-  const badgeId=(req.nome[0]+req.cognome[0]).toUpperCase()+"-"+(1000+Math.floor(Math.random()*9000));
+  const badgeInput=document.getElementById("badge-"+id);
+  const badgeId=badgeInput?badgeInput.value.trim():"";
+  if(!badgeId){alert("Inserisci il numero badge prima di approvare!");return;}
   if(profile&&profile.id===id||(!profile&&profile===null)){
     const updated={...req,approved:true,badge_id:badgeId};
     profile=updated;
