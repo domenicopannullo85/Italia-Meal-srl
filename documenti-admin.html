@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+  <title>Documenti Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:#f1f5f9;min-height:100vh}
+    .page{max-width:430px;margin:0 auto;padding-bottom:40px}
+    .header{background:linear-gradient(160deg,#1e3a5f 0%,#2563eb 100%);padding:24px 20px 20px;color:#fff}
+    .header .co{font-size:13px;opacity:.8;margin-bottom:8px}
+    .header h1{font-size:26px;font-weight:800;margin-bottom:4px}
+    .header p{font-size:14px;opacity:.8}
+    .body{padding:16px}
+    .card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:12px}
+    .sec{font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1px;margin:16px 0 8px;text-transform:uppercase}
+    .lbl{font-size:13px;font-weight:600;color:#1e293b;margin-bottom:6px;display:block}
+    select,input[type=text]{width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:15px;font-family:inherit;color:#1e293b;background:#fff;outline:none}
+    .upload-area{border:2px dashed #cbd5e1;border-radius:14px;padding:32px 20px;text-align:center;cursor:pointer;background:#f8fafc;transition:all .2s}
+    .upload-area:active{background:#eff6ff;border-color:#2563eb}
+    .upload-area .ico{font-size:40px;margin-bottom:12px}
+    .upload-area .title{font-weight:700;font-size:16px;color:#1e293b;margin-bottom:6px}
+    .upload-area .sub{font-size:13px;color:#94a3b8}
+    .btn-primary{width:100%;padding:15px;background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+    .doc-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+    .doc-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+    .status{text-align:center;padding:10px;font-size:14px;border-radius:10px;margin-top:10px}
+    .progress-wrap{background:#e2e8f0;border-radius:20px;height:8px;overflow:hidden;margin-top:8px}
+    .progress-bar{height:100%;border-radius:20px;background:linear-gradient(90deg,#1e3a5f,#2563eb);transition:width .3s}
+    .selected-file{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 14px;margin-top:10px;display:none;align-items:center;gap:10px}
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="co">⚙ Italia Meal S.r.l.</div>
+    <h1>Gestione Documenti</h1>
+    <p>Carica documenti per gli operai</p>
+  </div>
+  <div class="body">
+
+    <!-- DOCUMENTI GENERALI -->
+    <div class="sec">📢 Documenti Generali</div>
+    <div class="card">
+      <p style="font-size:13px;color:#64748b;margin-bottom:14px">Visibili a <strong>tutti gli operai</strong> — regolamento, circolari, comunicazioni</p>
+      
+      <label class="upload-area" for="fileGenerale">
+        <div class="ico">📤</div>
+        <div class="title">Carica PDF Generale</div>
+        <div class="sub">Tocca per aprire la cartella</div>
+      </label>
+      <input type="file" id="fileGenerale" accept=".pdf,.doc,.docx" style="display:none" onchange="onFileSelected(this,'generale')">
+      
+      <div class="selected-file" id="selGenerale">
+        <span style="font-size:20px">📄</span>
+        <div style="flex:1;min-width:0">
+          <div id="nomeFileGenerale" style="font-weight:600;font-size:14px;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+          <div id="dimFileGenerale" style="font-size:12px;color:#64748b"></div>
+        </div>
+        <button onclick="clearFile('generale')" style="background:none;border:none;cursor:pointer;font-size:18px;color:#94a3b8">✕</button>
+      </div>
+      
+      <div class="progress-wrap" id="progGenerale" style="display:none"><div class="progress-bar" id="progBarGenerale" style="width:0%"></div></div>
+      <div class="status" id="statusGenerale" style="display:none"></div>
+      
+      <button class="btn-primary" style="margin-top:14px" onclick="carica('generale')">⬆ Carica documento generale</button>
+    </div>
+
+    <!-- Lista generali -->
+    <div id="listaGenerale"></div>
+
+    <!-- DOCUMENTI PERSONALI -->
+    <div class="sec">👤 Documenti Personali</div>
+    <div class="card">
+      <p style="font-size:13px;color:#64748b;margin-bottom:14px">Visibili <strong>solo all'operaio selezionato</strong> — busta paga, contratto</p>
+      
+      <div style="margin-bottom:14px">
+        <label class="lbl">Operaio destinatario</label>
+        <select id="selectOperaio">
+          <option value="">Seleziona operaio...</option>
+        </select>
+      </div>
+      
+      <label class="upload-area" for="filePersonale">
+        <div class="ico">📤</div>
+        <div class="title">Carica PDF Personale</div>
+        <div class="sub">Tocca per aprire la cartella</div>
+      </label>
+      <input type="file" id="filePersonale" accept=".pdf,.doc,.docx" style="display:none" onchange="onFileSelected(this,'personale')">
+      
+      <div class="selected-file" id="selPersonale">
+        <span style="font-size:20px">📄</span>
+        <div style="flex:1;min-width:0">
+          <div id="nomeFilePersonale" style="font-weight:600;font-size:14px;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+          <div id="dimFilePersonale" style="font-size:12px;color:#64748b"></div>
+        </div>
+        <button onclick="clearFile('personale')" style="background:none;border:none;cursor:pointer;font-size:18px;color:#94a3b8">✕</button>
+      </div>
+      
+      <div class="progress-wrap" id="progPersonale" style="display:none"><div class="progress-bar" id="progBarPersonale" style="width:0%"></div></div>
+      <div class="status" id="statusPersonale" style="display:none"></div>
+      
+      <button class="btn-primary" style="margin-top:14px" onclick="carica('personale')">⬆ Carica documento personale</button>
+    </div>
+
+    <!-- Lista personali -->
+    <div id="listaPersonale"></div>
+
+  </div>
+</div>
+
+<script>
+const SUPA_URL = "https://bzquqzgaaszguzcmvgbl.supabase.co";
+const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cXVxemdhYXN6Z3V6Y212Z2JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjI4NjUsImV4cCI6MjA5NjY5ODg2NX0.p4lwBT2HWVEGge8LqVYu_rA1kO4WFxtbvCFDe1kRxeY";
+
+async function db(path, opts){
+  opts=opts||{};
+  const r=await fetch(SUPA_URL+"/rest/v1/"+path,{
+    headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY,"Content-Type":"application/json","Prefer":opts.prefer||"return=representation"},
+    method:opts.method||"GET",body:opts.body?JSON.stringify(opts.body):undefined
+  });
+  const t=await r.text();return t?JSON.parse(t):[];
+}
+
+function formatSize(bytes){
+  if(bytes<1024)return bytes+"B";
+  if(bytes<1024*1024)return(bytes/1024).toFixed(1)+"KB";
+  return(bytes/(1024*1024)).toFixed(1)+"MB";
+}
+
+function onFileSelected(input, tipo){
+  const file=input.files[0];
+  if(!file)return;
+  const sel=document.getElementById("sel"+cap(tipo));
+  sel.style.display="flex";
+  document.getElementById("nomeFile"+cap(tipo)).textContent=file.name;
+  document.getElementById("dimFile"+cap(tipo)).textContent=formatSize(file.size);
+}
+
+function clearFile(tipo){
+  document.getElementById("file"+cap(tipo)).value="";
+  document.getElementById("sel"+cap(tipo)).style.display="none";
+}
+
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+
+async function carica(tipo){
+  const input=document.getElementById("file"+cap(tipo));
+  const file=input.files[0];
+  if(!file){alert("Seleziona prima un file!");return;}
+  
+  if(tipo==="personale"){
+    const sel=document.getElementById("selectOperaio");
+    if(!sel.value){alert("Seleziona prima l'operaio destinatario!");return;}
+  }
+  
+  const prog=document.getElementById("prog"+cap(tipo));
+  const progBar=document.getElementById("progBar"+cap(tipo));
+  const status=document.getElementById("status"+cap(tipo));
+  
+  prog.style.display="block";
+  progBar.style.width="20%";
+  status.style.display="block";
+  status.style.background="#eff6ff";
+  status.style.color="#2563eb";
+  status.textContent="⏳ Caricamento in corso...";
+  
+  try {
+    const fileName=Date.now()+"_"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+    const bucket=tipo==="generale"?"documenti-generali":"documenti-personali";
+    
+    progBar.style.width="50%";
+    
+    const uploadRes=await fetch(SUPA_URL+"/storage/v1/object/"+bucket+"/"+fileName,{
+      method:"POST",
+      headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY,"Content-Type":file.type,"x-upsert":"true"},
+      body:file
+    });
+    
+    progBar.style.width="80%";
+    
+    if(!uploadRes.ok)throw new Error(await uploadRes.text());
+    
+    const url=SUPA_URL+"/storage/v1/object/public/"+bucket+"/"+fileName;
+    let profileId=null;
+    if(tipo==="personale") profileId=document.getElementById("selectOperaio").value;
+    
+    await db("documenti",{method:"POST",body:{nome:file.name,tipo,bucket,path:fileName,url,profile_id:profileId||null}});
+    
+    progBar.style.width="100%";
+    status.style.background="#dcfce7";
+    status.style.color="#166534";
+    status.textContent="✓ Documento caricato con successo!";
+    clearFile(tipo);
+    setTimeout(()=>{prog.style.display="none";status.style.display="none";progBar.style.width="0%";},3000);
+    loadDocs();
+    
+  } catch(e){
+    prog.style.display="none";
+    status.style.background="#fee2e2";
+    status.style.color="#b91c1c";
+    status.textContent="⚠ Errore: "+e.message;
+  }
+}
+
+async function loadDocs(){
+  try {
+    const docs=await db("documenti?order=created_at.desc");
+    const gen=docs.filter(d=>d.tipo==="generale");
+    const per=docs.filter(d=>d.tipo==="personale");
+    
+    const renderDoc=(d,color)=>`
+      <div class="doc-item">
+        <div class="doc-icon" style="background:${color}">${d.tipo==="generale"?"📢":"👤"}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:14px;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.nome}</div>
+          <div style="font-size:11px;color:#94a3b8">${new Date(d.created_at).toLocaleDateString("it-IT")}</div>
+        </div>
+        <a href="${d.url}" target="_blank" style="color:#2563eb;font-size:22px;text-decoration:none;padding:4px">⬇</a>
+      </div>`;
+    
+    document.getElementById("listaGenerale").innerHTML=
+      gen.length?gen.map(d=>renderDoc(d,"#dbeafe")).join(""):
+      '<div style="color:#94a3b8;font-size:13px;text-align:center;padding:12px">Nessun documento generale caricato</div>';
+    
+    document.getElementById("listaPersonale").innerHTML=
+      per.length?per.map(d=>renderDoc(d,"#e0e7ff")).join(""):
+      '<div style="color:#94a3b8;font-size:13px;text-align:center;padding:12px">Nessun documento personale caricato</div>';
+  } catch(e){ console.error(e); }
+}
+
+async function loadOperai(){
+  try {
+    const operai=await db("profiles?approved=eq.true&order=cognome.asc");
+    const sel=document.getElementById("selectOperaio");
+    sel.innerHTML='<option value="">Seleziona operaio...</option>'+
+      operai.map(o=>`<option value="${o.id}">${o.nome} ${o.cognome} — ${o.reparto}</option>`).join("");
+  } catch(e){ console.error(e); }
+}
+
+loadDocs();
+loadOperai();
+</script>
+</body>
+</html>
