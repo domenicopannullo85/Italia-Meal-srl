@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+  <title>Italia Meal - Amministrazione</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',system-ui,sans-serif;background:#f1f5f9;min-height:100vh}
+    #root{max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative}
+    .btn{border:none;cursor:pointer;font-family:inherit;font-weight:700}
+    .card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:12px}
+    .header{background:linear-gradient(160deg,#1e3a5f 0%,#2563eb 100%);padding:24px 20px 20px;color:#fff}
+    .header .co{font-size:13px;opacity:.8;display:flex;align-items:center;gap:6px;margin-bottom:8px}
+    .header h1{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+    .header p{font-size:14px;opacity:.8}
+    .body{padding:16px;flex:1}
+    .navbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:1px solid #e2e8f0;z-index:100}
+    .nav-grid{display:grid}
+    .nav-btn{display:flex;flex-direction:column;align-items:center;padding:10px 4px 8px;background:none;border:none;cursor:pointer;gap:2px;font-size:10px;font-family:inherit;position:relative}
+    .nav-ico{font-size:22px}
+    .nav-dot{width:4px;height:4px;border-radius:50%;background:#2563eb;position:absolute;bottom:3px}
+    .admin-bar{width:100%;border:none;cursor:pointer;padding:13px;color:#fff;font-weight:700;font-size:13px;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:0 0 18px 18px;position:relative;z-index:101}
+    input,select,textarea{width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:15px;font-family:inherit;color:#1e293b;background:#fff;outline:none;box-sizing:border-box}
+    textarea{min-height:90px;resize:vertical}
+    .lbl{font-size:13px;font-weight:600;color:#1e293b;margin-bottom:6px;display:block}
+    .field{margin-bottom:14px}
+    .sec-lbl{font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1px;margin:8px 0 10px;text-transform:uppercase}
+    .avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-shrink:0}
+    .badge-pill{font-size:12px;font-weight:700;border-radius:20px;padding:3px 12px;display:inline-block}
+    .upload-area{border:2px dashed #cbd5e1;border-radius:14px;padding:24px 20px;text-align:center;cursor:pointer;background:#f8fafc;display:block}
+    .progress-wrap{background:#e2e8f0;border-radius:20px;height:8px;overflow:hidden;margin-top:8px}
+    .progress-bar{height:100%;border-radius:20px;background:linear-gradient(90deg,#1e3a5f,#2563eb);transition:width .3s}
+    .empty-state{text-align:center;padding:40px 24px;color:#94a3b8}
+    .empty-state .ico{font-size:36px;margin-bottom:10px}
+    .empty-state .title{font-weight:600;font-size:14px;margin-bottom:4px;color:#64748b}
+    .empty-state .sub{font-size:12px}
+    .doc-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+    /* Separatore sezioni */
+    .section-divider{background:linear-gradient(135deg,#f1f5f9,#e2e8f0);border-radius:12px;padding:10px 14px;margin:16px 0 12px;display:flex;align-items:center;gap:8px}
+    .section-divider .sd-ico{font-size:20px}
+    .section-divider .sd-title{font-weight:700;font-size:14px;color:#1e293b}
+    .section-divider .sd-count{font-size:12px;font-weight:700;background:#2563eb;color:#fff;border-radius:20px;padding:2px 10px;margin-left:auto}
+    .section-divider .sd-count.orange{background:#d97706}
+    /* Modal */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end;justify-content:center}
+    .modal-box{background:#fff;border-radius:20px 20px 0 0;padding:24px 20px 36px;width:100%;max-width:430px}
+    .modal-title{font-size:18px;font-weight:800;color:#1e293b;margin-bottom:16px}
+  </style>
+</head>
+<body>
+<div id="root">
+
+  <!-- LOGIN ADMIN -->
+  <div id="pg-admin-login" style="display:flex;flex-direction:column;min-height:100vh">
+    <div style="background:linear-gradient(160deg,#d97706 0%,#f59e0b 100%);padding:60px 24px 40px;color:#fff;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">🪖</div>
+      <h1 style="font-size:28px;font-weight:800;margin-bottom:8px">Area Amministrativa</h1>
+      <p style="font-size:14px;opacity:.85">Italia Meal S.r.l.</p>
+    </div>
+    <div style="padding:24px 20px;flex:1">
+      <div class="card">
+        <div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:20px">Accesso riservato</div>
+        <div class="field"><label class="lbl">Email amministratore</label><input type="email" id="adm-email" placeholder="admin@italiameal.it"></div>
+        <div class="field">
+          <label class="lbl">Password</label>
+          <div style="position:relative">
+            <input type="password" id="adm-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')adminLogin()" style="padding-right:48px">
+            <button type="button" onclick="togglePass()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#94a3b8">👁</button>
+          </div>
+        </div>
+        <div id="adm-error" style="display:none;background:#fee2e2;border-radius:10px;padding:10px;font-size:13px;color:#b91c1c;margin-bottom:12px"></div>
+        <button class="btn" onclick="adminLogin()" style="width:100%;padding:15px;background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;border-radius:14px;font-size:16px">Accedi →</button>
+      </div>
+      <p style="text-align:center;font-size:13px;color:#94a3b8;margin-top:16px">Accesso riservato al personale amministrativo</p>
+    </div>
+  </div>
+
+  <!-- APP ADMIN -->
+  <div id="pg-admin" style="display:none;flex-direction:column;flex:1">
+    <button class="admin-bar btn" onclick="adminLogout()" style="background:#d97706">
+      <span>🪖</span> ESCI DA AREA ADMIN
+    </button>
+
+    <!-- ── TAB 1: ACCESSI & APPROVA ── -->
+    <div id="scr-accessi" style="display:block;overflow-y:auto;padding-bottom:80px">
+      <div class="header">
+        <div class="co"><span>⚙</span>Italia Meal S.r.l.</div>
+        <h1>Accessi & Approvazioni</h1>
+        <p id="accessi-header-sub">Caricamento...</p>
+      </div>
+      <div class="body">
+
+        <!-- Sezione: Nuovi accessi -->
+        <div class="section-divider">
+          <span class="sd-ico">🔑</span>
+          <span class="sd-title">Nuove richieste di accesso</span>
+          <span class="sd-count orange" id="cnt-nuovi-accessi">0</span>
+        </div>
+        <div id="accessi-list">
+          <div class="empty-state"><div class="ico">✅</div><div class="title">Nessuna richiesta in sospeso</div></div>
+        </div>
+
+        <!-- Sezione: Richieste ferie/permessi -->
+        <div class="section-divider" style="margin-top:24px">
+          <span class="sd-ico">📅</span>
+          <span class="sd-title">Richieste ferie & permessi</span>
+          <span class="sd-count" id="cnt-ferie-pending">0</span>
+        </div>
+        <div id="approva-list">
+          <div class="empty-state"><div class="ico">✅</div><div class="title">Nessuna richiesta in sospeso</div></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── TAB 2: PRESENZE ── -->
+    <div id="scr-presenze" style="display:none;overflow-y:auto;padding-bottom:80px">
+      <div class="header" style="padding-bottom:0">
+        <div class="co"><span>⚙</span>Italia Meal S.r.l.</div>
+        <h1>Dashboard Presenze</h1>
+        <p style="margin-bottom:16px">Aggiornato in tempo reale</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding-bottom:20px">
+          <div style="background:rgba(255,255,255,.13);border-radius:14px;padding:12px 8px;text-align:center">
+            <div id="cnt-presenti" style="font-size:28px;font-weight:800">0</div>
+            <div style="font-size:10px;opacity:.7;margin-top:2px">PRESENTI</div>
+          </div>
+          <div style="background:rgba(255,255,255,.92);border-radius:14px;padding:12px 8px;text-align:center">
+            <div id="cnt-in-ferie" style="font-size:28px;font-weight:800;color:#1e293b">0</div>
+            <div style="font-size:10px;color:#64748b;margin-top:2px">IN FERIE</div>
+          </div>
+          <div style="background:#fef3c7;border-radius:14px;padding:12px 8px;text-align:center">
+            <div id="cnt-pending-tot" style="font-size:28px;font-weight:800;color:#d97706">0</div>
+            <div style="font-size:10px;color:#92400e;margin-top:2px">DA APPROVARE</div>
+          </div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="sec-lbl">OPERAI REGISTRATI</div>
+        <div id="operai-list">
+          <div class="empty-state"><div class="ico">👥</div><div class="title">Nessun operaio</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 3: GESTIONE OPERAI ── -->
+    <div id="scr-operai" style="display:none;overflow-y:auto;padding-bottom:80px">
+      <div class="header">
+        <div class="co"><span>⚙</span>Italia Meal S.r.l.</div>
+        <h1>Gestione Operai</h1>
+        <p id="operai-count">Caricamento...</p>
+      </div>
+      <div class="body" id="operai-gestione-list">
+        <div class="empty-state"><div class="ico">👷</div><div class="title">Nessun operaio</div></div>
+      </div>
+    </div>
+
+    <!-- ── TAB 4: DOCUMENTI ── -->
+    <div id="scr-adm-docs" style="display:none;overflow-y:auto;padding-bottom:80px">
+      <div class="header">
+        <div class="co"><span>⚙</span>Italia Meal S.r.l.</div>
+        <h1>Gestione Documenti</h1>
+        <p>Generali e personali</p>
+      </div>
+      <div class="body">
+        <div class="sec-lbl">📢 Documenti Generali</div>
+        <div class="card">
+          <p style="font-size:13px;color:#64748b;margin-bottom:12px">Visibili a <strong>tutti gli operai</strong></p>
+          <label class="upload-area" for="file-gen">
+            <div style="font-size:36px;margin-bottom:10px">📤</div>
+            <div style="font-weight:700;font-size:15px;color:#1e293b;margin-bottom:4px">Carica PDF Generale</div>
+            <div style="font-size:12px;color:#94a3b8">Tocca per aprire la cartella</div>
+          </label>
+          <input type="file" id="file-gen" accept=".pdf,.doc,.docx" style="display:none" onchange="onFileSel(this,'gen')">
+          <div id="sel-gen" style="display:none;background:#eff6ff;border-radius:10px;padding:10px 14px;margin-top:10px;align-items:center;gap:10px">
+            <span style="font-size:20px">📄</span>
+            <div style="flex:1;min-width:0"><div id="nome-gen" style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div><div id="dim-gen" style="font-size:12px;color:#64748b"></div></div>
+            <button onclick="clearSel('gen')" style="background:none;border:none;cursor:pointer;font-size:18px;color:#94a3b8">✕</button>
+          </div>
+          <div class="progress-wrap" id="prog-gen" style="display:none;margin-top:8px"><div class="progress-bar" id="prog-bar-gen" style="width:0%"></div></div>
+          <div id="status-gen" style="display:none;text-align:center;padding:8px;font-size:13px;border-radius:10px;margin-top:8px"></div>
+          <button class="btn" onclick="uploadDoc('gen')" style="width:100%;padding:13px;background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;border-radius:12px;font-size:14px;margin-top:12px">⬆ Carica documento generale</button>
+        </div>
+        <div id="list-gen"></div>
+
+        <div class="sec-lbl" style="margin-top:8px">👤 Documenti Personali</div>
+        <div class="card">
+          <p style="font-size:13px;color:#64748b;margin-bottom:12px">Visibili <strong>solo all'operaio selezionato</strong></p>
+          <div class="field">
+            <label class="lbl">Operaio destinatario</label>
+            <select id="sel-operaio"><option value="">Seleziona operaio...</option></select>
+          </div>
+          <label class="upload-area" for="file-per">
+            <div style="font-size:36px;margin-bottom:10px">📤</div>
+            <div style="font-weight:700;font-size:15px;color:#1e293b;margin-bottom:4px">Carica PDF Personale</div>
+            <div style="font-size:12px;color:#94a3b8">Tocca per aprire la cartella</div>
+          </label>
+          <input type="file" id="file-per" accept=".pdf,.doc,.docx" style="display:none" onchange="onFileSel(this,'per')">
+          <div id="sel-per" style="display:none;background:#eff6ff;border-radius:10px;padding:10px 14px;margin-top:10px;align-items:center;gap:10px">
+            <span style="font-size:20px">📄</span>
+            <div style="flex:1;min-width:0"><div id="nome-per" style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div><div id="dim-per" style="font-size:12px;color:#64748b"></div></div>
+            <button onclick="clearSel('per')" style="background:none;border:none;cursor:pointer;font-size:18px;color:#94a3b8">✕</button>
+          </div>
+          <div class="progress-wrap" id="prog-per" style="display:none;margin-top:8px"><div class="progress-bar" id="prog-bar-per" style="width:0%"></div></div>
+          <div id="status-per" style="display:none;text-align:center;padding:8px;font-size:13px;border-radius:10px;margin-top:8px"></div>
+          <button class="btn" onclick="uploadDoc('per')" style="width:100%;padding:13px;background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;border-radius:12px;font-size:14px;margin-top:12px">⬆ Carica documento personale</button>
+        </div>
+        <div id="list-per"></div>
+      </div>
+    </div>
+
+    <!-- ── TAB 5: REPORT ── -->
+    <div id="scr-report" style="display:none;overflow-y:auto;padding-bottom:80px">
+      <div style="background:linear-gradient(160deg,#1e3a5f 0%,#2563eb 100%);color:#fff">
+        <div style="padding:24px 20px 16px">
+          <div class="co"><span>⚙</span>Italia Meal S.r.l.</div>
+          <h1 style="font-size:26px;font-weight:800;margin-bottom:4px">Report Mensile</h1>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;margin-bottom:16px">
+            <button class="btn" onclick="reportMonthPrev()" style="background:rgba(255,255,255,.2);border-radius:8px;width:34px;height:34px;font-size:18px;color:#fff">‹</button>
+            <span id="report-month-label" style="font-size:15px;font-weight:700;opacity:.9"></span>
+            <button class="btn" onclick="reportMonthNext()" id="report-next-btn" style="background:rgba(255,255,255,.2);border-radius:8px;width:34px;height:34px;font-size:18px;color:#fff">›</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 20px">
+          <div style="background:rgba(255,255,255,.12);border-radius:14px;padding:12px 16px">
+            <div style="font-size:12px;opacity:.7;margin-bottom:4px">Ore ordinarie totali</div>
+            <div id="report-tot-ord" style="font-size:22px;font-weight:800">0h</div>
+          </div>
+          <div style="background:rgba(96,165,250,.35);border-radius:14px;padding:12px 16px">
+            <div style="font-size:12px;opacity:.7;margin-bottom:4px">Straordinari totali</div>
+            <div id="report-tot-str" style="font-size:22px;font-weight:800">0h</div>
+          </div>
+        </div>
+      </div>
+      <div class="body">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div class="sec-lbl" style="margin:0">DETTAGLIO PER OPERAIO</div>
+          <button class="btn" id="btn-export-excel" onclick="exportReportExcel()" style="background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border-radius:10px;padding:8px 14px;font-size:13px;opacity:.4;pointer-events:none">📥 Esporta Excel</button>
+        </div>
+        <div id="report-list">
+          <div class="empty-state"><div class="ico">📊</div><div class="title">Nessun dato</div><div class="sub">Le ore appariranno dopo le timbrature</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAVBAR 5 tab -->
+    <div class="navbar">
+      <div class="nav-grid" style="grid-template-columns:repeat(5,1fr)">
+        <button class="nav-btn btn" onclick="admTab('accessi')" id="nav-accessi" style="color:#2563eb;position:relative">
+          <span class="nav-ico">🔑</span><span style="font-size:9px">Accessi</span>
+          <span id="badge-tot" style="display:none;position:absolute;top:6px;right:2px;background:#ef4444;color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;align-items:center;justify-content:center;line-height:16px"></span>
+          <div class="nav-dot"></div>
+        </button>
+        <button class="nav-btn btn" onclick="admTab('presenze')" id="nav-presenze" style="color:#94a3b8">
+          <span class="nav-ico">👥</span><span style="font-size:9px">Presenze</span>
+        </button>
+        <button class="nav-btn btn" onclick="admTab('operai')" id="nav-operai" style="color:#94a3b8">
+          <span class="nav-ico">👷</span><span style="font-size:9px">Operai</span>
+        </button>
+        <button class="nav-btn btn" onclick="admTab('adm-docs')" id="nav-adm-docs" style="color:#94a3b8">
+          <span class="nav-ico">📁</span><span style="font-size:9px">Documenti</span>
+        </button>
+        <button class="nav-btn btn" onclick="admTab('report')" id="nav-report" style="color:#94a3b8">
+          <span class="nav-ico">📊</span><span style="font-size:9px">Report</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL MODIFICA BADGE -->
+  <div id="modal-badge" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModalBadge()">
+    <div class="modal-box">
+      <div class="modal-title">✏️ Modifica Badge</div>
+      <div id="modal-badge-nome" style="font-size:15px;color:#64748b;margin-bottom:16px"></div>
+      <div class="field">
+        <label class="lbl">Nuovo numero badge</label>
+        <input id="modal-badge-input" placeholder="Es. 0042" inputmode="numeric" onkeydown="if(event.key==='Enter')saveBadge()">
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="btn" onclick="closeModalBadge()" style="flex:1;background:#f1f5f9;border-radius:12px;padding:13px;color:#64748b;font-size:15px">Annulla</button>
+        <button class="btn" onclick="saveBadge()" style="flex:1;background:linear-gradient(135deg,#1e3a5f,#2563eb);border-radius:12px;padding:13px;color:#fff;font-size:15px">💾 Salva</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- #root -->
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+const SUPA_URL   = "https://bzquqzgaaszguzcmvgbl.supabase.co";
+const SUPA_KEY   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cXVxemdhYXN6Z3V6Y212Z2JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjI4NjUsImV4cCI6MjA5NjY5ODg2NX0.p4lwBT2HWVEGge8LqVYu_rA1kO4WFxtbvCFDe1kRxeY";
+const ADMIN_EMAIL= "personale@italiameal.it";
+const ADMIN_PASS = "Italiameal2026@";
+const MONTHS     = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+const GIORNI     = ["Dom","Lun","Mar","Mer","Gio","Ven","Sab"];
+const STD_MS     = 8 * 3600000;
+
+let leaveReqs    = JSON.parse(localStorage.getItem("leaveReqs")||"[]");
+let accessReqs   = JSON.parse(localStorage.getItem("accessReqs")||"[]");
+let reportYear   = new Date().getFullYear();
+let reportMonth  = new Date().getMonth();
+let _editingOpId = null;
+
+// ── DB ────────────────────────────────────────────────────────────────────────
+async function db(path, opts){
+  opts=opts||{};
+  try{
+    const r=await fetch(SUPA_URL+"/rest/v1/"+path,{
+      headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY,"Content-Type":"application/json","Prefer":opts.prefer||"return=representation"},
+      method:opts.method||"GET",body:opts.body?JSON.stringify(opts.body):undefined
+    });
+    const t=await r.text(); return t?JSON.parse(t):[];
+  }catch(e){console.error("DB:",e);return null;}
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const p2=n=>String(n).padStart(2,"0");
+function msToH(ms){return Math.round(ms/3600000*100)/100;}
+function avatarBg(s){const c=["#1e3a5f","#2563eb","#0f766e","#7c3aed","#b45309","#be123c"];let h=0;for(const x of s)h=(h*31+x.charCodeAt(0))%c.length;return c[h];}
+function fmtSize(b){if(b<1024)return b+"B";if(b<1048576)return(b/1024).toFixed(1)+"KB";return(b/1048576).toFixed(1)+"MB";}
+
+// ── Page / Tab ────────────────────────────────────────────────────────────────
+function showPage(id){
+  ["pg-admin-login","pg-admin"].forEach(p=>{
+    const el=document.getElementById(p);
+    if(el) el.style.display=(p===id)?"flex":"none";
+  });
+}
+
+function admTab(tab){
+  ["accessi","presenze","operai","adm-docs","report"].forEach(t=>{
+    const scr=document.getElementById("scr-"+t);
+    const nav=document.getElementById("nav-"+t);
+    if(scr) scr.style.display=(t===tab)?"block":"none";
+    if(nav) nav.style.color=(t===tab)?"#2563eb":"#94a3b8";
+  });
+  if(tab==="accessi")   loadAccessiEApprova();
+  else if(tab==="presenze")  loadPresenze();
+  else if(tab==="operai")    loadOperaiGestione();
+  else if(tab==="adm-docs"){ loadAdmDocs(); loadOperaiSel(); }
+  else if(tab==="report")    loadReport();
+}
+
+// ── Login / Logout ────────────────────────────────────────────────────────────
+function togglePass(){
+  const inp=document.getElementById("adm-pass");
+  if(inp) inp.type=(inp.type==="password")?"text":"password";
+}
+function adminLogin(){
+  const email=document.getElementById("adm-email").value.trim();
+  const pass =document.getElementById("adm-pass").value;
+  const err  =document.getElementById("adm-error");
+  if(email===ADMIN_EMAIL&&pass===ADMIN_PASS){
+    showPage("pg-admin");
+    setTimeout(()=>admTab("accessi"),100);
+  }else{
+    err.style.display="block";
+    err.textContent="Email o password errati";
+  }
+}
+function adminLogout(){
+  document.getElementById("adm-email").value="";
+  document.getElementById("adm-pass").value="";
+  showPage("pg-admin-login");
+}
+
+// ── TAB 1: Accessi & Approva ──────────────────────────────────────────────────
+async function loadAccessiEApprova(){
+  await Promise.all([loadAccessi(), loadApprova()]);
+  // Aggiorna header con totale pendenti
+  const nAcc=parseInt(document.getElementById("cnt-nuovi-accessi").textContent)||0;
+  const nFer=parseInt(document.getElementById("cnt-ferie-pending").textContent)||0;
+  const totale=nAcc+nFer;
+  const sub=document.getElementById("accessi-header-sub");
+  if(sub) sub.textContent=totale>0?(totale+" richieste in attesa"):"Tutto in ordine ✓";
+  // Badge navbar
+  const badge=document.getElementById("badge-tot");
+  if(badge){badge.textContent=totale;badge.style.display=totale>0?"flex":"none";}
+}
+
+async function loadAccessi(){
+  let reqs=[];
+  try{const r=await db("profiles?approved=eq.false&order=created_at.asc");if(r)reqs=r;}catch(e){reqs=accessReqs;}
+  const cnt=document.getElementById("cnt-nuovi-accessi");
+  if(cnt) cnt.textContent=reqs.length;
+  const el=document.getElementById("accessi-list"); if(!el) return;
+  if(!reqs.length){
+    el.innerHTML='<div class="empty-state"><div class="ico">✅</div><div class="title">Nessuna richiesta di accesso</div></div>';
+    return;
+  }
+  el.innerHTML=reqs.map(r=>`
+    <div class="card" id="acc-${r.id}">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div class="avatar" style="width:44px;height:44px;background:#e0e7ff;color:#4338ca;font-size:15px">${(r.nome||"?")[0]}${(r.cognome||"")[0]}</div>
+        <div>
+          <div style="font-weight:700;font-size:15px;color:#1e293b">${r.nome} ${r.cognome}</div>
+          <div style="font-size:12px;color:#64748b">${r.email}</div>
+          <span class="badge-pill" style="background:#dbeafe;color:#1d4ed8;margin-top:4px;display:inline-block">${r.reparto}</span>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:10px">
+        <label class="lbl">Numero Badge da assegnare</label>
+        <input id="badge-inp-${r.id}" placeholder="Es. 0042" inputmode="numeric" style="margin-bottom:0">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="rejectAccess('${r.id}')" style="flex:1;background:#fff;border:1.5px solid #fca5a5;border-radius:10px;padding:10px;color:#ef4444;font-size:13px">✕ Rifiuta</button>
+        <button class="btn" onclick="approveAccess('${r.id}')" style="flex:2;background:#16a34a;border-radius:10px;padding:10px;color:#fff;font-size:13px">✓ Approva & Assegna Badge</button>
+      </div>
+    </div>`).join("");
+}
+
+async function approveAccess(id){
+  const inp=document.getElementById("badge-inp-"+id);
+  const badgeId=inp?inp.value.trim():"";
+  if(!badgeId){alert("Inserisci il numero badge!");return;}
+  try{await db("profiles?id=eq."+id,{method:"PATCH",body:{approved:true,badge_id:badgeId},prefer:"return=minimal"});}catch(e){}
+  accessReqs=accessReqs.filter(r=>String(r.id)!==String(id));
+  localStorage.setItem("accessReqs",JSON.stringify(accessReqs));
+  loadAccessiEApprova();
+  alert("✅ Operaio approvato! Badge: "+badgeId);
+}
+
+async function rejectAccess(id){
+  if(!confirm("Rifiutare e eliminare questa richiesta?")) return;
+  try{await db("profiles?id=eq."+id,{method:"DELETE",prefer:"return=minimal"});}catch(e){}
+  accessReqs=accessReqs.filter(r=>String(r.id)!==String(id));
+  localStorage.setItem("accessReqs",JSON.stringify(accessReqs));
+  loadAccessiEApprova();
+}
+
+async function loadApprova(){
+  const el=document.getElementById("approva-list"); if(!el) return;
+  // Carica da Supabase
+  let pending=[];
+  try{
+    const rows=await db("leave_requests?status=eq.pending&order=created_at.asc");
+    if(rows&&rows.length){
+      // Arricchisci con nome operaio
+      const operai=await db("profiles?approved=eq.true");
+      const opMap={};
+      if(operai) operai.forEach(o=>opMap[String(o.id)]=o.nome+" "+o.cognome);
+      pending=rows.map(r=>({...r,empName:opMap[String(r.profile_id)]||"Operaio"}));
+    }
+  }catch(e){
+    // Fallback locale
+    pending=leaveReqs.filter(r=>!r.decided);
+  }
+  const cnt=document.getElementById("cnt-ferie-pending");
+  if(cnt) cnt.textContent=pending.length;
+  if(!pending.length){
+    el.innerHTML='<div class="empty-state"><div class="ico">✅</div><div class="title">Nessuna richiesta di ferie/permessi</div></div>';
+    return;
+  }
+  const tipoBg={Ferie:"#dbeafe",Malattia:"#fee2e2",ROL:"#fef9c3",Permesso:"#f3e8ff"};
+  const tipoCol={Ferie:"#1d4ed8",Malattia:"#b91c1c",ROL:"#a16207",Permesso:"#7c3aed"};
+  el.innerHTML=pending.map(r=>{
+    const d=new Date(r.date||r.created_at);
+    const bg=tipoBg[r.tipo]||"#f1f5f9",col=tipoCol[r.tipo]||"#475569";
+    const rid=r.id;
+    return`<div class="card" id="appr-${rid}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div>
+          <div style="font-weight:700;font-size:15px;color:#1e293b">${r.empName||"Operaio"}</div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px">${d.getDate()}/${p2(d.getMonth()+1)}/${d.getFullYear()}</div>
+        </div>
+        <span class="badge-pill" style="background:${bg};color:${col}">${r.tipo}</span>
+      </div>
+      ${r.note?`<div style="font-size:13px;color:#475569;font-style:italic;background:#f8fafc;border-radius:8px;padding:8px 10px;margin-bottom:10px">"${r.note}"</div>`:""}
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="decideApprova('${rid}','rejected')" style="flex:1;background:#fff;border:1.5px solid #fca5a5;border-radius:10px;padding:10px;color:#ef4444;font-size:13px">✕ Rifiuta</button>
+        <button class="btn" onclick="decideApprova('${rid}','approved')" style="flex:1;background:#16a34a;border-radius:10px;padding:10px;color:#fff;font-size:13px">✓ Approva</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function decideApprova(id,status){
+  try{
+    await db("leave_requests?id=eq."+id,{method:"PATCH",body:{status},prefer:"return=minimal"});
+  }catch(e){}
+  // Aggiorna anche locale
+  leaveReqs=leaveReqs.map(r=>String(r.id)===String(id)?{...r,decided:true,status}:r);
+  localStorage.setItem("leaveReqs",JSON.stringify(leaveReqs));
+  // Rimuovi card con animazione
+  const card=document.getElementById("appr-"+id);
+  if(card){ card.style.opacity="0"; card.style.transition="opacity .3s"; setTimeout(()=>loadAccessiEApprova(),300); }
+  else loadAccessiEApprova();
+}
+
+// ── TAB 2: Presenze ───────────────────────────────────────────────────────────
+async function loadPresenze(){
+  let operai=[];
+  try{const r=await db("profiles?approved=eq.true&order=cognome.asc");if(r)operai=r;}catch(e){}
+  const today=new Date().toISOString().split("T")[0];
+  let ferieIds=new Set();
+  try{
+    const fr=await db("leave_requests?status=eq.approved&date=eq."+today);
+    if(fr) fr.forEach(r=>ferieIds.add(String(r.profile_id)));
+  }catch(e){}
+  let todayShifts=[];
+  try{
+    const start=new Date();start.setHours(0,0,0,0);
+    const rows=await db("shifts?start_time=gte."+start.toISOString()+"&order=start_time.asc");
+    if(rows) todayShifts=rows;
+  }catch(e){}
+  const presentIds=new Set(todayShifts.map(s=>String(s.profile_id)));
+  const presenti=operai.filter(o=>presentIds.has(String(o.id)));
+  const inFerie =operai.filter(o=>ferieIds.has(String(o.id))&&!presentIds.has(String(o.id)));
+  const assenti =operai.filter(o=>!presentIds.has(String(o.id))&&!ferieIds.has(String(o.id)));
+  const cp=document.getElementById("cnt-presenti"),cf=document.getElementById("cnt-in-ferie"),cpend=document.getElementById("cnt-pending-tot");
+  if(cp) cp.textContent=presenti.length;
+  if(cf) cf.textContent=inFerie.length;
+  if(cpend) cpend.textContent=leaveReqs.filter(r=>!r.decided).length+accessReqs.length;
+  const el=document.getElementById("operai-list"); if(!el) return;
+  if(!operai.length){el.innerHTML='<div class="empty-state"><div class="ico">👥</div><div class="title">Nessun operaio registrato</div></div>';return;}
+  const renderOp=(o,status,color,col)=>`
+    <div class="card" style="display:flex;align-items:center;gap:14px">
+      <div class="avatar" style="width:44px;height:44px;background:${avatarBg((o.nome||"?")[0]+(o.cognome||"")[0])};font-size:16px">${(o.nome||"?")[0]}${(o.cognome||"")[0]}</div>
+      <div style="flex:1"><div style="font-weight:700;font-size:15px;color:#1e293b">${o.nome} ${o.cognome}</div><div style="font-size:13px;color:#64748b">${o.reparto}${o.badge_id?" · Badge "+o.badge_id:""}</div></div>
+      <span class="badge-pill" style="background:${color};color:${col}">${status}</span>
+    </div>`;
+  let html="";
+  if(presenti.length){html+='<div class="sec-lbl">IN FABBRICA ORA</div>';html+=presenti.map(o=>renderOp(o,"✓ Presente","#dcfce7","#166534")).join("");}
+  if(inFerie.length){html+='<div class="sec-lbl" style="margin-top:8px">IN FERIE OGGI</div>';html+=inFerie.map(o=>renderOp(o,"🌴 Ferie","#dbeafe","#1d4ed8")).join("");}
+  if(assenti.length){html+='<div class="sec-lbl" style="margin-top:8px">NON TIMBRATI OGGI</div>';html+=assenti.map(o=>renderOp(o,"— Assente","#f1f5f9","#64748b")).join("");}
+  el.innerHTML=html;
+}
+
+// ── TAB 3: Gestione Operai ────────────────────────────────────────────────────
+async function loadOperaiGestione(){
+  const el=document.getElementById("operai-gestione-list");
+  const cnt=document.getElementById("operai-count");
+  if(!el) return;
+  el.innerHTML='<div class="empty-state"><div class="ico">⏳</div><div class="title">Caricamento...</div></div>';
+  let operai=[];
+  try{const r=await db("profiles?approved=eq.true&order=cognome.asc");if(r)operai=r;}catch(e){}
+  if(cnt) cnt.textContent=operai.length+" operai attivi";
+  if(!operai.length){el.innerHTML='<div class="empty-state"><div class="ico">👷</div><div class="title">Nessun operaio attivo</div></div>';return;}
+  el.innerHTML=operai.map(o=>`
+    <div class="card" id="op-card-${o.id}">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="avatar" style="width:46px;height:46px;background:${avatarBg((o.nome||"?")[0]+(o.cognome||"")[0])};font-size:17px">${(o.nome||"?")[0]}${(o.cognome||"")[0]}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:15px;color:#1e293b">${o.nome} ${o.cognome}</div>
+          <div style="font-size:13px;color:#64748b">${o.reparto}</div>
+          <div style="margin-top:6px">
+            <span style="background:#f1f5f9;border-radius:8px;padding:3px 10px;font-size:13px;font-weight:600;color:#1e3a5f">🪪 Badge: ${o.badge_id||"—"}</span>
+          </div>
+          <div style="font-size:12px;color:#94a3b8;margin-top:3px">${o.email||""}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn" onclick="openModalBadge('${o.id}','${o.nome} ${o.cognome}','${o.badge_id||""}')"
+          style="flex:1;background:#eff6ff;border-radius:10px;padding:10px;color:#2563eb;font-size:13px">✏️ Cambia Badge</button>
+        <button class="btn" onclick="eliminaOperaio('${o.id}','${o.nome} ${o.cognome}')"
+          style="background:#fee2e2;border-radius:10px;padding:10px 14px;color:#ef4444;font-size:13px">🗑</button>
+      </div>
+    </div>`).join("");
+}
+
+function openModalBadge(id,nome,badgeAtt){
+  _editingOpId=id;
+  document.getElementById("modal-badge-nome").textContent=nome;
+  document.getElementById("modal-badge-input").value=badgeAtt;
+  document.getElementById("modal-badge").style.display="flex";
+  setTimeout(()=>document.getElementById("modal-badge-input").focus(),100);
+}
+function closeModalBadge(){
+  document.getElementById("modal-badge").style.display="none";
+  _editingOpId=null;
+}
+async function saveBadge(){
+  const newBadge=document.getElementById("modal-badge-input").value.trim();
+  if(!newBadge){alert("Inserisci il numero badge!");return;}
+  if(!_editingOpId) return;
+  try{
+    await db("profiles?id=eq."+_editingOpId,{method:"PATCH",body:{badge_id:newBadge},prefer:"return=minimal"});
+    closeModalBadge();
+    loadOperaiGestione();
+    alert("✅ Badge aggiornato: "+newBadge);
+  }catch(e){alert("Errore: "+e.message);}
+}
+
+async function eliminaOperaio(id,nome){
+  if(!confirm("⚠️ Eliminare definitivamente "+nome+"?\n\nVerrà rimosso dall'app e non apparirà più nei report.")) return;
+  try{
+    await db("shifts?profile_id=eq."+id,{method:"DELETE",prefer:"return=minimal"});
+    await db("leave_requests?profile_id=eq."+id,{method:"DELETE",prefer:"return=minimal"});
+    await db("documenti?profile_id=eq."+id,{method:"DELETE",prefer:"return=minimal"});
+    await db("profiles?id=eq."+id,{method:"DELETE",prefer:"return=minimal"});
+    loadOperaiGestione();
+    alert("✅ Operaio eliminato.");
+  }catch(e){alert("Errore: "+e.message);}
+}
+
+// ── TAB 4: Documenti ─────────────────────────────────────────────────────────
+function onFileSel(input,tipo){
+  const f=input.files[0];if(!f)return;
+  document.getElementById("sel-"+tipo).style.display="flex";
+  document.getElementById("nome-"+tipo).textContent=f.name;
+  document.getElementById("dim-"+tipo).textContent=fmtSize(f.size);
+}
+function clearSel(tipo){
+  document.getElementById("file-"+tipo).value="";
+  document.getElementById("sel-"+tipo).style.display="none";
+}
+
+async function uploadDoc(tipo){
+  const input=document.getElementById("file-"+tipo);
+  const f=input.files[0];
+  if(!f){alert("Seleziona un file!");return;}
+  if(tipo==="per"&&!document.getElementById("sel-operaio").value){alert("Seleziona l'operaio!");return;}
+  const prog=document.getElementById("prog-"+tipo),bar=document.getElementById("prog-bar-"+tipo),status=document.getElementById("status-"+tipo);
+  prog.style.display="block";bar.style.width="20%";
+  status.style.display="block";status.style.background="#eff6ff";status.style.color="#2563eb";status.textContent="⏳ Caricamento...";
+  try{
+    const fn=Date.now()+"_"+f.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+    const bucket=tipo==="gen"?"documenti-generali":"documenti-personali";
+    bar.style.width="50%";
+    const up=await fetch(SUPA_URL+"/storage/v1/object/"+bucket+"/"+fn,{
+      method:"POST",headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY,"Content-Type":f.type,"x-upsert":"true"},body:f
+    });
+    bar.style.width="80%";
+    if(!up.ok) throw new Error(await up.text());
+    const url=SUPA_URL+"/storage/v1/object/public/"+bucket+"/"+fn;
+    const pid=tipo==="per"?document.getElementById("sel-operaio").value:null;
+    await db("documenti",{method:"POST",body:{nome:f.name,tipo:tipo==="gen"?"generale":"personale",bucket,path:fn,url,profile_id:pid||null}});
+    bar.style.width="100%";
+    status.style.background="#dcfce7";status.style.color="#166534";status.textContent="✓ Caricato con successo!";
+    clearSel(tipo);
+    setTimeout(()=>{prog.style.display="none";status.style.display="none";bar.style.width="0%";},3000);
+    loadAdmDocs();
+  }catch(e){
+    prog.style.display="none";
+    status.style.background="#fee2e2";status.style.color="#b91c1c";status.textContent="⚠ Errore: "+e.message;
+  }
+}
+
+async function deleteDoc(id,bucket,path){
+  if(!confirm("Eliminare questo documento?")) return;
+  try{
+    await fetch(SUPA_URL+"/storage/v1/object/"+bucket+"/"+path,{method:"DELETE",headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY}});
+    await db("documenti?id=eq."+id,{method:"DELETE",prefer:"return=minimal"});
+    loadAdmDocs();
+  }catch(e){alert("Errore: "+e.message);}
+}
+
+async function loadAdmDocs(){
+  try{
+    const docs=await db("documenti?order=created_at.desc");
+    if(!docs) return;
+    const gen=docs.filter(d=>d.tipo==="generale");
+    const per=docs.filter(d=>d.tipo==="personale");
+    const renderDoc=d=>`
+      <div class="doc-item">
+        <span style="font-size:22px">${d.tipo==="generale"?"📢":"👤"}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.nome}</div>
+          <div style="font-size:11px;color:#94a3b8">${new Date(d.created_at).toLocaleDateString("it-IT")}</div>
+        </div>
+        <a href="${d.url}" target="_blank" style="color:#2563eb;font-size:22px;text-decoration:none;margin-right:8px">⬇</a>
+        <button onclick="deleteDoc('${d.id}','${d.bucket}','${d.path}')" style="background:none;border:none;cursor:pointer;font-size:20px;color:#ef4444;padding:4px">🗑</button>
+      </div>`;
+    const lg=document.getElementById("list-gen"),lp=document.getElementById("list-per");
+    if(lg) lg.innerHTML=gen.length?gen.map(renderDoc).join(""):'<div style="color:#94a3b8;font-size:13px;text-align:center;padding:12px">Nessun documento generale</div>';
+    if(lp) lp.innerHTML=per.length?per.map(renderDoc).join(""):'<div style="color:#94a3b8;font-size:13px;text-align:center;padding:12px">Nessun documento personale</div>';
+  }catch(e){}
+}
+
+async function loadOperaiSel(){
+  try{
+    const operai=await db("profiles?approved=eq.true&order=cognome.asc");
+    const sel=document.getElementById("sel-operaio");
+    if(!sel||!operai) return;
+    sel.innerHTML='<option value="">Seleziona operaio...</option>'+
+      operai.map(o=>`<option value="${o.id}">${o.nome} ${o.cognome} — ${o.reparto}</option>`).join("");
+  }catch(e){}
+}
+
+// ── TAB 5: Report ─────────────────────────────────────────────────────────────
+function reportMonthPrev(){if(reportMonth===0){reportMonth=11;reportYear--;}else reportMonth--;loadReport();}
+function reportMonthNext(){
+  const now=new Date();
+  if(reportYear===now.getFullYear()&&reportMonth===now.getMonth()) return;
+  if(reportMonth===11){reportMonth=0;reportYear++;}else reportMonth++;
+  loadReport();
+}
+
+async function loadReport(){
+  const lbl=document.getElementById("report-month-label");
+  if(lbl) lbl.textContent=MONTHS[reportMonth]+" "+reportYear;
+  const now=new Date();
+  const nextBtn=document.getElementById("report-next-btn");
+  if(nextBtn) nextBtn.style.opacity=(reportYear===now.getFullYear()&&reportMonth===now.getMonth())?0.3:1;
+  const btnExp=document.getElementById("btn-export-excel");
+  if(btnExp){btnExp.style.opacity=".4";btnExp.style.pointerEvents="none";}
+  document.getElementById("report-tot-ord").textContent="0h";
+  document.getElementById("report-tot-str").textContent="0h";
+  const el=document.getElementById("report-list");if(!el)return;
+  el.innerHTML='<div class="empty-state"><div class="ico">⏳</div><div class="title">Caricamento...</div></div>';
+  try{
+    const operai=await db("profiles?approved=eq.true&order=cognome.asc");
+    if(!operai||!operai.length){el.innerHTML='<div class="empty-state"><div class="ico">👥</div><div class="title">Nessun operaio</div></div>';return;}
+    const start=new Date(reportYear,reportMonth,1).toISOString();
+    const end  =new Date(reportYear,reportMonth+1,1).toISOString();
+    let allShifts=[];
+    try{const rows=await db("shifts?start_time=gte."+start+"&start_time=lt."+end+"&order=start_time.asc");if(rows)allShifts=rows;}catch(e){}
+    let totalOrd=0,totalStr=0;
+    const rows=operai.map(o=>{
+      const myShifts=allShifts.filter(s=>String(s.profile_id)===String(o.id));
+      let ordMs=0,strMs=0;
+      for(const s of myShifts){
+        const e2=s.end_time?new Date(s.end_time).getTime():Date.now();
+        const dur=e2-new Date(s.start_time).getTime();
+        if(dur<=0)continue;
+        ordMs+=Math.min(dur,STD_MS);
+        if(dur>STD_MS)strMs+=dur-STD_MS;
+      }
+      const ordH=msToH(ordMs),strH=msToH(strMs);
+      totalOrd+=ordH;totalStr+=strH;
+      return{o,ordH,strH};
+    });
+    document.getElementById("report-tot-ord").textContent=Math.round(totalOrd)+"h";
+    document.getElementById("report-tot-str").textContent=Math.round(totalStr)+"h";
+    if(!rows.length){el.innerHTML='<div class="empty-state"><div class="ico">📊</div><div class="title">Nessun dato</div></div>';return;}
+    if(btnExp){btnExp.style.opacity="1";btnExp.style.pointerEvents="auto";}
+    let html=`<div style="background:#1e3a5f;border-radius:10px 10px 0 0;padding:10px 14px;display:grid;grid-template-columns:1fr 55px 55px 60px">
+      <div style="font-size:12px;font-weight:700;color:#fff">Operaio</div>
+      <div style="font-size:12px;font-weight:700;color:#fff;text-align:right">Ord.</div>
+      <div style="font-size:12px;font-weight:700;color:#60a5fa;text-align:right">Str.</div>
+      <div style="font-size:12px;font-weight:700;color:#fff;text-align:right">Totale</div>
+    </div>`;
+    rows.forEach(({o,ordH,strH},i)=>{
+      html+=`<div style="padding:10px 14px;display:grid;grid-template-columns:1fr 55px 55px 60px;background:${i%2===0?"#fff":"#f8fafc"};border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-bottom:${i===rows.length-1?"1px solid #e2e8f0":"none"}">
+        <div><div style="font-weight:600;font-size:13px;color:#1e293b">${o.nome} ${o.cognome}</div><div style="font-size:11px;color:#94a3b8">${o.reparto}</div></div>
+        <div style="text-align:right;font-size:14px;color:#1e293b;align-self:center">${ordH}h</div>
+        <div style="text-align:right;font-size:14px;color:${strH>0?"#2563eb":"#94a3b8"};font-weight:${strH>0?700:400};align-self:center">${strH}h</div>
+        <div style="text-align:right;font-size:14px;font-weight:700;color:#1e293b;align-self:center">${Math.round((ordH+strH)*100)/100}h</div>
+      </div>`;
+    });
+    el.innerHTML=html;
+  }catch(e){
+    el.innerHTML='<div class="empty-state"><div class="ico">⚠️</div><div class="title">Errore</div><div class="sub">'+e.message+'</div></div>';
+  }
+}
+
+async function exportReportExcel(){
+  const btnExp=document.getElementById("btn-export-excel");
+  if(btnExp){btnExp.textContent="⏳ Esportazione...";btnExp.style.opacity=".6";}
+  try{
+    const operai=await db("profiles?approved=eq.true&order=cognome.asc");
+    if(!operai||!operai.length){alert("Nessun operaio.");return;}
+    const start=new Date(reportYear,reportMonth,1).toISOString();
+    const end  =new Date(reportYear,reportMonth+1,1).toISOString();
+    let allShifts=[];
+    try{const rows=await db("shifts?start_time=gte."+start+"&start_time=lt."+end+"&order=start_time.asc");if(rows)allShifts=rows;}catch(e){}
+    const meseLbl=MONTHS[reportMonth]+" "+reportYear;
+    const summaryData=[["REPORT MENSILE — "+meseLbl.toUpperCase()],["Generato il: "+new Date().toLocaleDateString("it-IT")],[],["Operaio","Reparto","Badge","Ore Ordinarie","Ore Straordinarie","Ore Totali","N° Turni"]];
+    let totOrd=0,totStr=0,totT=0;
+    const detailByOp=[];
+    for(const o of operai){
+      const myShifts=allShifts.filter(s=>String(s.profile_id)===String(o.id));
+      let ordMs=0,strMs=0;
+      for(const s of myShifts){
+        const e2=s.end_time?new Date(s.end_time).getTime():null;if(!e2)continue;
+        const dur=e2-new Date(s.start_time).getTime();if(dur<=0)continue;
+        ordMs+=Math.min(dur,STD_MS);if(dur>STD_MS)strMs+=dur-STD_MS;
+      }
+      const ordH=Math.round(ordMs/3600000*100)/100,strH=Math.round(strMs/3600000*100)/100,tot=Math.round((ordH+strH)*100)/100;
+      totOrd+=ordH;totStr+=strH;totT+=myShifts.length;
+      summaryData.push([o.nome+" "+o.cognome,o.reparto,o.badge_id||"—",ordH,strH,tot,myShifts.length]);
+      detailByOp.push({o,myShifts});
+    }
+    summaryData.push([],["TOTALE","","",Math.round(totOrd*100)/100,Math.round(totStr*100)/100,Math.round((totOrd+totStr)*100)/100,totT]);
+    const wsSummary=XLSX.utils.aoa_to_sheet(summaryData);
+    wsSummary["!cols"]=[{wch:24},{wch:18},{wch:10},{wch:16},{wch:18},{wch:12},{wch:10}];
+    const detailData=[["DETTAGLIO TURNI — "+meseLbl.toUpperCase()],[],["Operaio","Reparto","Data","Giorno","Entrata","Uscita","Ore Ordinarie","Ore Straordinarie","Ore Totali"]];
+    for(const {o,myShifts} of detailByOp){
+      for(const s of myShifts.filter(s=>s.end_time)){
+        const dtIn=new Date(s.start_time),dtOut=new Date(s.end_time);
+        const dur=dtOut-dtIn;if(dur<=0)continue;
+        const ordH=Math.round(Math.min(dur,STD_MS)/3600000*100)/100;
+        const strH=Math.round((dur>STD_MS?dur-STD_MS:0)/3600000*100)/100;
+        detailData.push([o.nome+" "+o.cognome,o.reparto,dtIn.toLocaleDateString("it-IT"),GIORNI[dtIn.getDay()],p2(dtIn.getHours())+":"+p2(dtIn.getMinutes()),p2(dtOut.getHours())+":"+p2(dtOut.getMinutes()),ordH,strH,Math.round((ordH+strH)*100)/100]);
+      }
+    }
+    const wsDetail=XLSX.utils.aoa_to_sheet(detailData);
+    wsDetail["!cols"]=[{wch:24},{wch:18},{wch:12},{wch:8},{wch:10},{wch:10},{wch:16},{wch:18},{wch:12}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,wsSummary,"Riepilogo");
+    XLSX.utils.book_append_sheet(wb,wsDetail,"Dettaglio Turni");
+    XLSX.writeFile(wb,"Report_"+MONTHS[reportMonth]+"_"+reportYear+".xlsx");
+  }catch(e){alert("Errore: "+e.message);}
+  finally{if(btnExp){btnExp.textContent="📥 Esporta Excel";btnExp.style.opacity="1";}}
+}
+
+// ── Start ─────────────────────────────────────────────────────────────────────
+showPage("pg-admin-login");
+</script>
+</body>
+</html>
