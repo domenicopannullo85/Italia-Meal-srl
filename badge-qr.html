@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Italia Meal - Stampa Badge QR</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,'Segoe UI',Inter,sans-serif;background:#f1f5f9;padding:24px}
+    .toolbar{max-width:900px;margin:0 auto 24px;background:#1e3a5f;border-radius:16px;padding:20px 24px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+    .toolbar h1{font-size:20px;font-weight:800}
+    .toolbar p{font-size:13px;opacity:.75;margin-top:2px}
+    .btn{border:none;cursor:pointer;font-family:inherit;font-weight:700;border-radius:10px;padding:11px 20px;font-size:14px}
+    .btn-print{background:#16a34a;color:#fff}
+    .btn-reload{background:rgba(255,255,255,.15);color:#fff}
+    .status{max-width:900px;margin:0 auto 16px;text-align:center;color:#64748b;font-size:14px}
+    .grid{max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+    .badge-card{background:#fff;border-radius:16px;padding:20px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.08);border:1.5px solid #e2e8f0;page-break-inside:avoid}
+    .badge-card .qr-box{display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+    .badge-card .qr-box img{image-rendering:pixelated}
+    .badge-card .nome{font-size:16px;font-weight:800;color:#1e293b;margin-bottom:2px}
+    .badge-card .reparto{font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+    .badge-card .num{display:inline-block;background:#1e3a5f;color:#fff;font-weight:800;font-size:15px;letter-spacing:1px;border-radius:20px;padding:5px 16px}
+    .badge-card .co{font-size:10px;color:#94a3b8;margin-top:10px;font-weight:600;letter-spacing:.5px}
+
+    @media print{
+      body{background:#fff;padding:0}
+      .toolbar,.status{display:none}
+      .grid{grid-template-columns:repeat(3,1fr);gap:12px;max-width:100%}
+      .badge-card{box-shadow:none;border:1.5px dashed #cbd5e1}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <div>
+      <h1>🪪 Stampa Badge QR</h1>
+      <p>Italia Meal S.r.l. — Operai approvati</p>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-reload" onclick="loadOperai()">🔄 Ricarica</button>
+      <button class="btn btn-print" onclick="window.print()">🖨️ Stampa</button>
+    </div>
+  </div>
+
+  <div class="status" id="status">Caricamento operai da Supabase...</div>
+  <div class="grid" id="grid"></div>
+
+<script>
+const SUPA_URL = "https://bzquqzgaaszguzcmvgbl.supabase.co";
+const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cXVxemdhYXN6Z3V6Y212Z2JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMjI4NjUsImV4cCI6MjA5NjY5ODg2NX0.p4lwBT2HWVEGge8LqVYu_rA1kO4WFxtbvCFDe1kRxeY";
+
+async function db(path){
+  try{
+    const r = await fetch(SUPA_URL+"/rest/v1/"+path,{
+      headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY}
+    });
+    const t = await r.text(); return t ? JSON.parse(t) : [];
+  }catch(e){ console.error(e); return null; }
+}
+
+async function loadOperai(){
+  const status=document.getElementById("status");
+  const grid=document.getElementById("grid");
+  status.textContent="Caricamento operai da Supabase...";
+  grid.innerHTML="";
+
+  const operai = await db("profiles?approved=eq.true&order=cognome.asc");
+
+  if(!operai){
+    status.textContent="⚠️ Errore di connessione a Supabase.";
+    return;
+  }
+  const conBadge = operai.filter(o=>o.badge_id && String(o.badge_id).trim()!=="");
+  if(!conBadge.length){
+    status.textContent="Nessun operaio con badge assegnato.";
+    return;
+  }
+  status.textContent = conBadge.length + " badge da stampare. Usa il pulsante Stampa in alto.";
+
+  conBadge.forEach(o=>{
+    const card=document.createElement("div");
+    card.className="badge-card";
+    const qrId = "qr-"+o.id;
+    card.innerHTML = `
+      <div class="qr-box" id="${qrId}"></div>
+      <div class="nome">${o.nome} ${o.cognome}</div>
+      <div class="reparto">${o.reparto||""}</div>
+      <div class="num">🪪 ${o.badge_id}</div>
+      <div class="co">ITALIA MEAL S.R.L.</div>
+    `;
+    grid.appendChild(card);
+    new QRCode(document.getElementById(qrId), {
+      text: String(o.badge_id),
+      width: 150,
+      height: 150,
+      colorDark: "#1e293b",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  });
+}
+
+loadOperai();
+</script>
+</body>
+</html>
